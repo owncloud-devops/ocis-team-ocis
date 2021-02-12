@@ -46,7 +46,7 @@ services:
   ocis:
     # TODO: switch to owncloud/ocis:1.2.0@sha:xxx when released
     #image: owncloud/ocis:1.1.0@sha256:2fd296d2e4b2c116833c84a04baee57ccdffd3ce6ea55ba1786d1a508d1fe491
-    image: owncloud/ocis:latest@sha256:7cbee558d08c4786f9dd1b7c9ccf9aeceaf661d6073ed65478c2d4f2c5dc558c
+    image: owncloud/ocis:latest@sha256:fbbc17df1cf81bbe383c44b63690d4fa2cdaa391389893d264c1a3fd623ca732
     networks:
       ocis-net:
     entrypoint:
