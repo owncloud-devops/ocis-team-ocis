@@ -117,6 +117,8 @@ services:
       KEYCLOAK_USER: ${KEYCLOAK_ADMIN_USER:-admin}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       PROXY_ADDRESS_FORWARDING: "true"
+    volumes:
+      - /mnt/ocis-team-ocis-data/keycloak:/var/lib/keycloak/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.keycloak.entrypoints=http"
