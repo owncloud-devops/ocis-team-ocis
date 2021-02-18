@@ -1,11 +1,12 @@
 ---
 version: "3.7"
 
-services:
-  ocis:
-    environment:
-      OCIS_TRACING_ENABLED: "true"
-      OCIS_TRACING_ENDPOINT: jaeger-agent:6831
+# do not enable tracing because it may leak secrets to our public accessible jaeger instance
+#services:
+#  ocis:
+#    environment:
+#      OCIS_TRACING_ENABLED: "true"
+#      OCIS_TRACING_ENDPOINT: jaeger-agent:6831
 
 networks:
   ocis-net:
