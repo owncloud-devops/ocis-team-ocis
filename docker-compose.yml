@@ -115,6 +115,10 @@ services:
       KEYCLOAK_USER: ${KEYCLOAK_ADMIN_USER:-admin}
       KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       PROXY_ADDRESS_FORWARDING: "true"
+    volumes:
+      - ./config/keycloak/themes/ownCloudInfiniteScale:/opt/jboss/keycloak/themes/ownCloudInfiniteScale
+      # enable below for hot reload when working on themes
+      #- ./config/keycloak/disable-theme-cache.cli:/opt/jboss/startup-scripts/disable-theme-cache.cli
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.keycloak.entrypoints=http"
