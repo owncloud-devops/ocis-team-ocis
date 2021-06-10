@@ -41,8 +41,37 @@ Differences to the deployment examples:
 - 03/31/2021 update to oCIS 1.4.0 available: [breaking changes](https://owncloud.dev/ocis/release_notes/#changed-ocis-storage-driver-file-layout), oCIS data needs to be pruned
 - 04/09/2021 schedule update date and notify users that they need to back up their data
 - 04/14/2021 update to oCIS 1.4.0
+
   - stop oCIS by running `docker-compose down`
   - backup oCIS storage location and prune the original storage location
   - [bump oCIS version](https://github.com/owncloud-devops/ocis-team-ocis/commit/fa17910358f9fb5a2b8204cb182c2748e1e373bb)
+  - run a `git pull` and `docker-compose up -d` on the server
+  - notify users that they can reupload their data and recreate shares
+
+- 04/23/2021 update to oCIS 1.5.0: no breaking changes, dead simple update
+
+  - [bump oCIS version](https://github.com/owncloud-devops/ocis-team-ocis/commit/d6a5881ed8e3e04257334998e50000ad3a987f10)
+  - run a `git pull` and `docker-compose up -d` on the server
+
+- 05/10/2021 update to Keycloak 13.0.0: no breaking changes, dead simple update
+
+  - [bump Keycloak version](https://github.com/owncloud-devops/ocis-team-ocis/commit/bd49643919d3d9b318e2c1623cfb52d6caa6eb6c)
+  - run a `git pull` and `docker-compose up -d` on the server
+
+- 04/23/2021 reverted update to oCIS 1.6.0: breaking changes detected during update
+
+  - [bump oCIS version](https://github.com/owncloud-devops/ocis-team-ocis/commit/372536150821c384b5a1baca7ed6bfad2bd7f169)
+  - run a `git pull` and `docker-compose up -d` on the server
+  - noticed two breaking changes: [1](https://owncloud.dev/ocis/release_notes/#changed-ocis-json-share-driver-storage-format) and [2](https://owncloud.dev/ocis/release_notes/#fixed--changed-ocis-metadata-storage-driver-filesystem-path)
+  - [revert bump oCIS version](https://github.com/owncloud-devops/ocis-team-ocis/commit/9020d0ba66b2620a07793e427f750f0a2538d9dc)
+  - run a `git pull` and `docker-compose up -d` on the server
+
+- 05/26/2021 changed [internal transport from https to http](https://github.com/owncloud-devops/ocis-team-ocis/commit/1b548251d3520f3a3753239715fb2ee6040f83fd)
+
+- 06/08/2021 schedule update date and notify users that they need to back up their data
+- 06/10/2021 update to oCIS 1.7.0
+  - stop oCIS by running `docker-compose down`
+  - backup oCIS storage location and prune the original storage location (because of breaking changes from oCIS 1.5.0 to 1.6.0)
+  - [bump oCIS version](https://github.com/owncloud-devops/ocis-team-ocis/commit/fd9939cd31af0ad7da66dd188b0413febaa906a3)
   - run a `git pull` and `docker-compose up -d` on the server
   - notify users that they can reupload their data and recreate shares
