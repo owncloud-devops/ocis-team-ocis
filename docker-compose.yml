@@ -96,7 +96,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:13.3@sha256:e06f11b87b304167ce81264cecd10c0352a9fbc1906f4750f686d7bc8cf4f25a
+    image: postgres:13.3@sha256:076944ea17958f18eb62fd8ccc3f74a554c7529492157cbea3a6c88a97aa57af
     networks:
       ocis-net:
     volumes:
