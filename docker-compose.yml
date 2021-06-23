@@ -157,7 +157,7 @@ services:
     restart: always
 
   ocis-wopiserver:
-    image: owncloud/ocis-wopiserver:latest@sha256:76bb212faabf7c59af2b3ce41d27bbdf6edea4658fa5d2a205a9d9c1fca2e7ac
+    image: owncloud/ocis-wopiserver:latest@sha256:1ef24c6b1c5e31d93c5d3edda4af2899c0267e275ced9f4037ae23428c73b15c
     networks:
       ocis-net:
     environment:
