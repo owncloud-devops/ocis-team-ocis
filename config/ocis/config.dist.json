@@ -9,7 +9,7 @@
     "response_type": "code",
     "scope": "openid profile email"
   },
-  "apps": ["files"],
+  "apps": ["files", "media-viewer"],
   "external_apps": [
     {
       "id": "settings",
