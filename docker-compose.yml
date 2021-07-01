@@ -203,7 +203,7 @@ services:
     restart: always
 
   collabora:
-    image: collabora/code:6.4.9.3@sha256:8a6f43948d0f4c3bb5a4ee32b93e9eb699149ee23e24a16232ac65772faa5c70
+    image: collabora/code:6.4.10.1@sha256:1e235564cd561fbf850a75b6f951aacbd61e44f44c00001a0ead6e8e8b3d09b7
     networks:
       ocis-net:
     environment:
