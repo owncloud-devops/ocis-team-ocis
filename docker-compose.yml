@@ -3,7 +3,7 @@ version: "3.7"
 
 services:
   traefik:
-    image: traefik:v2.5@sha256:a3d421210d0ed4804dd488ecfa347781d740a088cb1216241884c498fb39f68b
+    image: traefik:v2.5@sha256:5dd7a864a4f691d7f9b1862c62f97f9d11b65a55e2d7e5d1ef3e03a3a17db15b
     networks:
       ocis-net:
         aliases:
