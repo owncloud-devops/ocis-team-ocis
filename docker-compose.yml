@@ -11,14 +11,22 @@ services:
           - ${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}
           - ${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
           - ${COLLABORA_DOMAIN:-collabora.owncloud.test}
+          - ${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
+          - ${CODIMD_DOMAIN:-codimd.owncloud.test}
     command:
-      #- "--log.level=DEBUG"
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-ERROR}"
+      # letsencrypt configuration
       - "--certificatesResolvers.http.acme.email=${TRAEFIK_ACME_MAIL:-example@example.org}"
       - "--certificatesResolvers.http.acme.storage=/certs/acme.json"
       - "--certificatesResolvers.http.acme.httpChallenge.entryPoint=http"
+      # enable dashboard
       - "--api.dashboard=true"
+      # define entrypoints
       - "--entryPoints.http.address=:80"
+      - "--entryPoints.http.http.redirections.entryPoint.to=https"
+      - "--entryPoints.http.http.redirections.entryPoint.scheme=https"
       - "--entryPoints.https.address=:443"
+      # docker provider (get configuration from container labels)
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedByDefault=false"
     ports:
@@ -29,23 +37,18 @@ services:
       - "certs:/certs"
     labels:
       - "traefik.enable=${TRAEFIK_DASHBOARD:-false}"
-      - "traefik.http.routers.traefik.entrypoints=http"
-      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DOMAIN:-traefik.owncloud.test}`)"
       - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH_USERS:-admin:$apr1$4vqie50r$YQAmQdtmz5n9rEALhxJ4l.}" # defaults to admin:admin
-      - "traefik.http.middlewares.traefik-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.traefik.middlewares=traefik-https-redirect"
-      - "traefik.http.routers.traefik-secure.entrypoints=https"
-      - "traefik.http.routers.traefik-secure.rule=Host(`${TRAEFIK_DOMAIN:-traefik.owncloud.test}`)"
-      - "traefik.http.routers.traefik-secure.middlewares=traefik-auth"
-      - "traefik.http.routers.traefik-secure.tls=true"
-      - "traefik.http.routers.traefik-secure.tls.certresolver=http"
-      - "traefik.http.routers.traefik-secure.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=https"
+      - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DOMAIN:-traefik.owncloud.test}`)"
+      - "traefik.http.routers.traefik.middlewares=traefik-auth"
+      - "traefik.http.routers.traefik.tls.certresolver=http"
+      - "traefik.http.routers.traefik.service=api@internal"
     logging:
       driver: "local"
     restart: always
 
   ocis:
-    image: owncloud/ocis:1.12.0@sha256:5116863570bbc68f3d2a2bd554bd7be259ade439717b171982aef679527b05bc
+    image: owncloud/ocis:1.13.0
     networks:
       ocis-net:
     entrypoint:
@@ -72,26 +75,19 @@ services:
       OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
       STORAGE_TRANSFER_SECRET: ${STORAGE_TRANSFER_SECRET:-replace-me-with-a-transfer-secret}
       OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-replace-me-with-an-api-key}
-      # web ui
-      WEB_UI_CONFIG: "/var/tmp/ocis/.config/web-config.json"
-      # proxy
-      PROXY_CONFIG_FILE: "/var/tmp/ocis/.config/proxy-config.json"
+      # app registry
+      STORAGE_GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
+      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/tmp/ocis/app-config/mimetypes.json
     volumes:
       - ./config/ocis/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/ocis/web-config.dist.json:/config/web-config.dist.json
-      - ./config/ocis/proxy-config.json:/config/proxy-config.json
+      - ./config/ocis/mimetypes.json:/var/tmp/ocis/app-config/mimetypes.json
       - /mnt/ocis-team-ocis-data/ocis:/var/tmp/ocis
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.ocis.entrypoints=http"
+      - "traefik.http.routers.ocis.entrypoints=https"
       - "traefik.http.routers.ocis.rule=Host(`${OCIS_DOMAIN:-ocis.owncloud.test}`)"
-      - "traefik.http.middlewares.ocis-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.ocis.middlewares=ocis-https-redirect"
-      - "traefik.http.routers.ocis-secure.entrypoints=https"
-      - "traefik.http.routers.ocis-secure.rule=Host(`${OCIS_DOMAIN:-ocis.owncloud.test}`)"
-      - "traefik.http.routers.ocis-secure.tls=true"
-      - "traefik.http.routers.ocis-secure.tls.certresolver=http"
-      - "traefik.http.routers.ocis-secure.service=ocis"
+      - "traefik.http.routers.ocis.tls.certresolver=http"
+      - "traefik.http.routers.ocis.service=ocis"
       - "traefik.http.services.ocis.loadbalancer.server.port=9200"
     logging:
       driver: "local"
@@ -131,50 +127,28 @@ services:
       #- ./config/keycloak/disable-theme-cache.cli:/opt/jboss/startup-scripts/disable-theme-cache.cli
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.entrypoints=http"
+      - "traefik.http.routers.keycloak.entrypoints=https"
       - "traefik.http.routers.keycloak.rule=Host(`${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}`)"
-      - "traefik.http.middlewares.keycloak-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.keycloak.middlewares=keycloak-https-redirect"
-      - "traefik.http.routers.keycloak-secure.entrypoints=https"
-      - "traefik.http.routers.keycloak-secure.rule=Host(`${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}`)"
-      - "traefik.http.routers.keycloak-secure.tls=true"
-      - "traefik.http.routers.keycloak-secure.tls.certresolver=http"
-      - "traefik.http.routers.keycloak-secure.service=keycloak"
+      - "traefik.http.routers.keycloak.tls.certresolver=http"
+      - "traefik.http.routers.keycloak.service=keycloak"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
-      - "traefik.http.services.keycloak.loadbalancer.server.scheme=http"
       # let /.well-known/openid-configuration be served by Keycloak
-      - "traefik.http.routers.idp-wellknown-secure.entrypoints=https"
-      - "traefik.http.routers.idp-wellknown-secure.tls=true"
-      - "traefik.http.routers.idp-wellknown-secure.tls.certresolver=http"
-      - "traefik.http.routers.idp-wellknown-secure.rule=Host(`${OCIS_DOMAIN:-ocis.owncloud.test}`) && Path(`/.well-known/openid-configuration`)"
       - "traefik.http.middlewares.idp-headers.headers.customrequestheaders.X-Forwarded-Host=${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}"
       - "traefik.http.middlewares.idp-prefix.addprefix.prefix=/auth/realms/${KEYCLOAK_REALM:-oCIS}"
       - "traefik.http.middlewares.idp-override.chain.middlewares=idp-headers,idp-prefix"
-      - "traefik.http.routers.idp-wellknown-secure.middlewares=idp-override"
-      - "traefik.http.routers.idp-wellknown-secure.service=keycloak"
+      - "traefik.http.routers.idp-wellknown.entrypoints=https"
+      - "traefik.http.routers.idp-wellknown.tls.certresolver=http"
+      - "traefik.http.routers.idp-wellknown.rule=Host(`${OCIS_DOMAIN:-ocis.owncloud.test}`) && Path(`/.well-known/openid-configuration`)"
+      - "traefik.http.routers.idp-wellknown.middlewares=idp-override"
+      - "traefik.http.routers.idp-wellknown.service=keycloak"
     depends_on:
       - postgres
     logging:
       driver: "local"
     restart: always
 
-  ocis-wopiserver:
-    image: owncloud/ocis-wopiserver:latest@sha256:75def9f318e3a12425206a960778c6fa4feedf599e0b2d2d7b0f4225f4c10aed
-    networks:
-      ocis-net:
-    environment:
-      OCIS_LOG_LEVEL: ${OCIS_LOG_LEVEL:-error} # make oCIS less verbose
-      WOPISERVER_REVA_GATEWAY_ADDR: ocis:9142
-      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
-      WOPISERVER_WOPI_SERVER_HOST: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
-      WOPISERVER_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
-      WOPISERVER_WOPI_SERVER_INSECURE: "${INSECURE:-false}"
-    logging:
-      driver: "local"
-    restart: always
-
   wopiserver:
-    image: cs3org/wopiserver:v7.3.1@sha256:f167e058b38bd2b89a8e11a3c103826e4680053eccf6d7fb1191b49956ef8068
+    image: cs3org/wopiserver:v7.4.1
     networks:
       ocis-net:
     entrypoint:
@@ -183,6 +157,7 @@ services:
     environment:
       WOPISECRET: ${WOPI_JWT_SECRET:-LoremIpsum567}
       IOPSECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      CODIMDSECRET: ${CODIMD_SECRET:-LoremIpsum456}
       WOPISERVER_DOMAIN: ${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
       COLLABORA_DOMAIN: ${COLLABORA_DOMAIN:-collabora.owncloud.test}
     volumes:
@@ -190,22 +165,100 @@ services:
       - ./config/wopiserver/wopiserver.conf.dist:/etc/wopi/wopiserver.conf.dist
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.wopiserver.entrypoints=http"
+      - "traefik.http.routers.wopiserver.entrypoints=https"
       - "traefik.http.routers.wopiserver.rule=Host(`${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}`)"
-      - "traefik.http.middlewares.wopiserver-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.wopiserver.middlewares=wopiserver-https-redirect"
-      - "traefik.http.routers.wopiserver-secure.entrypoints=https"
-      - "traefik.http.routers.wopiserver-secure.rule=Host(`${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}`)"
-      - "traefik.http.routers.wopiserver-secure.tls=true"
-      - "traefik.http.routers.wopiserver-secure.tls.certresolver=http"
-      - "traefik.http.routers.wopiserver-secure.service=wopiserver"
+      - "traefik.http.routers.wopiserver.tls.certresolver=http"
+      - "traefik.http.routers.wopiserver.service=wopiserver"
       - "traefik.http.services.wopiserver.loadbalancer.server.port=8880"
     logging:
       driver: "local"
     restart: always
 
+  ocis-appdriver-collabora:
+    image: owncloud/ocis:1.13.0
+    networks:
+      ocis-net:
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-override.sh
+    #command: storage-app-provider server
+    environment:
+      REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
+      APP_PROVIDER_BASIC_EXTERNAL_ADDR: ocis-appdriver-collabora:9164
+      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
+      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
+      APP_PROVIDER_DRIVER: wopi
+      APP_PROVIDER_WOPI_DRIVER_APP_NAME: Collabora
+      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://www.collaboraoffice.com/wp-content/uploads/2019/01/CP-icon.png
+      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${COLLABORA_DOMAIN:-collabora.owncloud.test}
+      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+    volumes:
+      - ./config/ocis-appdriver-collabora/entrypoint-override.sh:/entrypoint-override.sh
+    logging:
+      driver: "local"
+    restart: always
+
+  ocis-appdriver-onlyoffice:
+    image: owncloud/ocis:1.13.0
+    networks:
+      ocis-net:
+    user: "0" # needed for apk add in entrypoint script
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-override.sh
+    #command: storage-app-provider server
+    environment:
+      REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
+      APP_PROVIDER_BASIC_GRPC_ADDR: 0.0.0.0:9164
+      APP_PROVIDER_BASIC_EXTERNAL_ADDR: ocis-appdriver-onlyoffice:9164
+      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
+      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
+      APP_PROVIDER_DRIVER: wopi
+      APP_PROVIDER_WOPI_DRIVER_APP_NAME: OnlyOffice
+      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://www.pikpng.com/pngl/m/343-3435764_onlyoffice-desktop-editors-onlyoffice-logo-clipart.png
+      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
+      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+    volumes:
+      - ./config/ocis-appdriver-onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
+    logging:
+      driver: "local"
+    restart: always
+
+  ocis-appdriver-codimd:
+    image: owncloud/ocis:1.13.0
+    networks:
+      ocis-net:
+    user: "0" # needed for apk add in entrypoint script
+    entrypoint:
+      - /bin/sh
+      - /entrypoint-override.sh
+    #command: storage-app-provider server
+    environment:
+      REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
+      APP_PROVIDER_BASIC_GRPC_ADDR: 0.0.0.0:9164
+      APP_PROVIDER_BASIC_EXTERNAL_ADDR: ocis-appdriver-codimd:9164
+      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
+      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
+      APP_PROVIDER_DRIVER: wopi
+      APP_PROVIDER_WOPI_DRIVER_APP_NAME: CodiMD
+      APP_PROVIDER_WOPI_DRIVER_APP_API_KEY: ${CODIMD_SECRET:-LoremIpsum456}
+      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://avatars.githubusercontent.com/u/67865462?v=4
+      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${CODIMD_DOMAIN:-codimd.owncloud.test}
+      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+    volumes:
+      - ./config/ocis-appdriver-codimd/entrypoint-override.sh:/entrypoint-override.sh
+    logging:
+      driver: "local"
+    restart: always
+
   collabora:
-    image: collabora/code:6.4.13.1@sha256:ec929eed92a8494e9354736329e0f3894c09691b0d93cf77173552222f59ffd1
+    image: collabora/code:6.4.11.3
     networks:
       ocis-net:
     environment:
@@ -218,22 +271,79 @@ services:
       - MKNOD
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.collabora.entrypoints=http"
+      - "traefik.http.routers.collabora.entrypoints=https"
       - "traefik.http.routers.collabora.rule=Host(`${COLLABORA_DOMAIN:-collabora.owncloud.test}`)"
-      - "traefik.http.middlewares.collabora-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.routers.collabora.middlewares=collabora-https-redirect"
-      - "traefik.http.routers.collabora-secure.entrypoints=https"
-      - "traefik.http.routers.collabora-secure.rule=Host(`${COLLABORA_DOMAIN:-collabora.owncloud.test}`)"
-      - "traefik.http.routers.collabora-secure.tls=true"
-      - "traefik.http.routers.collabora-secure.tls.certresolver=http"
-      - "traefik.http.routers.collabora-secure.service=collabora"
+      - "traefik.http.routers.collabora.tls.certresolver=http"
+      - "traefik.http.routers.collabora.service=collabora"
       - "traefik.http.services.collabora.loadbalancer.server.port=9980"
+    logging:
+      driver: "local"
+    restart: always
+
+  onlyoffice:
+    image: onlyoffice/documentserver:6.4.0
+    networks:
+      ocis-net:
+    environment:
+      USE_UNAUTHORIZED_STORAGE: "${INSECURE:-false}" # selfsigned certificates
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.onlyoffice.entrypoints=https"
+      - "traefik.http.routers.onlyoffice.rule=Host(`${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}`)"
+      - "traefik.http.routers.onlyoffice.tls.certresolver=http"
+      - "traefik.http.routers.onlyoffice.service=onlyoffice"
+      - "traefik.http.services.onlyoffice.loadbalancer.server.port=80"
+      # websockets can't be opend when this is ommitted
+      - "traefik.http.middlewares.onlyoffice.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.routers.onlyoffice.middlewares=onlyoffice"
+    logging:
+      driver: "local"
+    restart: always
+
+  codimd:
+    image: gitlab-registry.cern.ch/authoring/notes/codimd:cernbox-integration
+    networks:
+      ocis-net:
+    environment:
+      CMD_DB_URL: postgres://codimd:codimd@codimd-db/codimd
+      CMD_AUTO_VERSION_CHECK: "false"
+      CMD_ALLOW_ANONYMOUS: "true"
+      CMD_ALLOW_ANONYMOUS_EDITS: "true"
+      CMD_ALLOW_ANONYMOUS_VIEWS: "true"
+      CMD_ALLOW_FREEURL: "true"
+      CMD_EMAIL: "false"
+      CMD_ALLOW_EMAIL_REGISTER: "false"
+      CMD_USESSL: "false"
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+      CMD_APPLIANCE_MODE: "true"
+      CMD_SAVE_WEBHOOK: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}/wopi/bridge
+      CMD_API_KEY: ${CODIMD_SECRET:-LoremIpsum456}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.codimd.entrypoints=https"
+      - "traefik.http.routers.codimd.rule=Host(`${CODIMD_DOMAIN:-codimd.owncloud.test}`)"
+      - "traefik.http.routers.codimd.tls.certresolver=http"
+      - "traefik.http.routers.codimd.service=codimd"
+      - "traefik.http.services.codimd.loadbalancer.server.port=3000"
+    logging:
+      driver: "local"
+    restart: always
+
+  codimd-db:
+    image: postgres:11.6-alpine
+    networks:
+      ocis-net:
+    environment:
+      POSTGRES_USER: codimd
+      POSTGRES_PASSWORD: codimd
+      POSTGRES_DB: codimd
     logging:
       driver: "local"
     restart: always
 
 volumes:
   certs:
+
 
 networks:
   ocis-net:
