@@ -48,7 +48,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:1.13.0
+    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
     networks:
       ocis-net:
     entrypoint:
@@ -148,7 +148,7 @@ services:
     restart: always
 
   wopiserver:
-    image: cs3org/wopiserver:v7.4.1
+    image: cs3org/wopiserver:v7.4.1@sha256:e3ae452804d21604f5e913270112720030c6151a3b1aa0d3d5ed5758537affab
     networks:
       ocis-net:
     entrypoint:
@@ -174,7 +174,7 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:1.13.0
+    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
     networks:
       ocis-net:
     entrypoint:
@@ -200,7 +200,7 @@ services:
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:1.13.0
+    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -228,7 +228,7 @@ services:
     restart: always
 
   ocis-appdriver-codimd:
-    image: owncloud/ocis:1.13.0
+    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -257,7 +257,7 @@ services:
     restart: always
 
   collabora:
-    image: collabora/code:6.4.13.2
+    image: collabora/code:6.4.13.2@sha256:d5a918577588df63f749b114e4359e88b58dd5f3528f05001e3e0fcaa04a2618
     networks:
       ocis-net:
     environment:
@@ -280,7 +280,7 @@ services:
     restart: always
 
   onlyoffice:
-    image: onlyoffice/documentserver:6.4.1
+    image: onlyoffice/documentserver:6.4.1@sha256:ba4d4bbdc0eef02e3706a039b757b3e8c512f5c741299ffaf0a1dc8c2421be2f
     networks:
       ocis-net:
     environment:
@@ -300,7 +300,7 @@ services:
     restart: always
 
   codimd:
-    image: gitlab-registry.cern.ch/authoring/notes/codimd:cernbox-integration
+    image: gitlab-registry.cern.ch/authoring/notes/codimd:cernbox-integration@sha256:5f456692cd04bac2a3706b90330cd3434233fccec044a8a747d34a2e58b6b7de
     networks:
       ocis-net:
     environment:
@@ -329,7 +329,7 @@ services:
     restart: always
 
   codimd-db:
-    image: postgres:11.13-alpine
+    image: postgres:11.13-alpine@sha256:635f861d2e62ac683536829eed07f4f523b5668b38b6e3ad01692ca15880a9df
     networks:
       ocis-net:
     environment:
