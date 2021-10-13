@@ -281,7 +281,7 @@ services:
     restart: always
 
   onlyoffice:
-    image: onlyoffice/documentserver:6.4.0
+    image: onlyoffice/documentserver:6.4.1
     networks:
       ocis-net:
     environment:
