@@ -330,7 +330,7 @@ services:
     restart: always
 
   codimd-db:
-    image: postgres:11.13-alpine@sha256:635f861d2e62ac683536829eed07f4f523b5668b38b6e3ad01692ca15880a9df
+    image: postgres:11.13-alpine@sha256:772a6dd666eea7a5258caa6130b81c97c8ae0116e690b98a2d373f122f45974a
     networks:
       ocis-net:
     environment:
