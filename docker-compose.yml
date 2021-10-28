@@ -48,7 +48,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
+    image: owncloud/ocis:1.14.0@sha256:3632d2d63e0de0a489961ae4f89d92ac9300492a89082ac4e1976e645ecd6680
     networks:
       ocis-net:
     entrypoint:
@@ -78,11 +78,11 @@ services:
       OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-replace-me-with-an-api-key}
       # app registry
       STORAGE_GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
-      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/tmp/ocis/app-config/mimetypes.json
+      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/lib/ocis/app-config/mimetypes.json
     volumes:
       - ./config/ocis/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/ocis/mimetypes.json:/var/tmp/ocis/app-config/mimetypes.json
-      - /mnt/ocis-team-ocis-data/ocis:/var/tmp/ocis
+      - ./config/ocis/mimetypes.json:/var/lib/ocis/app-config/mimetypes.json
+      - /mnt/ocis-team-ocis-data/ocis:/var/lib/ocis
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=https"
@@ -175,7 +175,7 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
+    image: owncloud/ocis:1.14.0@sha256:3632d2d63e0de0a489961ae4f89d92ac9300492a89082ac4e1976e645ecd6680
     networks:
       ocis-net:
     entrypoint:
@@ -201,7 +201,7 @@ services:
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
+    image: owncloud/ocis:1.14.0@sha256:3632d2d63e0de0a489961ae4f89d92ac9300492a89082ac4e1976e645ecd6680
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -229,7 +229,7 @@ services:
     restart: always
 
   ocis-appdriver-codimd:
-    image: owncloud/ocis:1.13.0@sha256:f6d3b121efd523e2c5c1125972c6283e2ca3850b946cbd5cf9632c2b830786b2
+    image: owncloud/ocis:1.14.0@sha256:3632d2d63e0de0a489961ae4f89d92ac9300492a89082ac4e1976e645ecd6680
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
