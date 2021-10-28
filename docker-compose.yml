@@ -78,11 +78,11 @@ services:
       OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-replace-me-with-an-api-key}
       # app registry
       STORAGE_GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
-      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/tmp/ocis/app-config/mimetypes.json
+      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/lib/ocis/app-config/mimetypes.json
     volumes:
       - ./config/ocis/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/ocis/mimetypes.json:/var/tmp/ocis/app-config/mimetypes.json
-      - /mnt/ocis-team-ocis-data/ocis:/var/tmp/ocis
+      - ./config/ocis/mimetypes.json:/var/lib/ocis/app-config/mimetypes.json
+      - /mnt/ocis-team-ocis-data/ocis:/var/lib/ocis
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ocis.entrypoints=https"
