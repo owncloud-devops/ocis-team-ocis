@@ -196,6 +196,8 @@ services:
       APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-collabora/entrypoint-override.sh:/entrypoint-override.sh
+    depends_on:
+      - ocis
     logging:
       driver: "local"
     restart: always
@@ -224,6 +226,8 @@ services:
       APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
+    depends_on:
+      - ocis
     logging:
       driver: "local"
     restart: always
@@ -254,6 +258,8 @@ services:
     volumes:
       - ./config/ocis-appdriver-codimd/entrypoint-override.sh:/entrypoint-override.sh
     logging:
+    depends_on:
+      - ocis
       driver: "local"
     restart: always
 
@@ -343,7 +349,6 @@ services:
 
 volumes:
   certs:
-
 
 networks:
   ocis-net:
