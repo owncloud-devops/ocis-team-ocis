@@ -257,9 +257,9 @@ services:
       APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-codimd/entrypoint-override.sh:/entrypoint-override.sh
-    logging:
     depends_on:
       - ocis
+    logging:
       driver: "local"
     restart: always
 
