@@ -288,7 +288,7 @@ services:
     restart: always
 
   onlyoffice:
-    image: onlyoffice/documentserver:6.4.0@sha256:302dcac5a3621b75225f178f9969c1bc71c0c5cd4645754eb126172aa96ee372
+    image: onlyoffice/documentserver:7.0.0@sha256:32d7833c15135fc80cbf573cc055e851719b05d5a8d1479f66bfbbbf97207059
     networks:
       ocis-net:
     environment:
