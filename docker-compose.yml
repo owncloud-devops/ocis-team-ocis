@@ -95,7 +95,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:13.6@sha256:acb73bc9b0780632cf1b2e4f475d367a44a7dc0d42524333236a30212eb4748d
+    image: postgres:13.6@sha256:43568014f86275fd51992b9c8a6cf528d3acb6da8bcabfac04ed5abecb56a1c1
     networks:
       ocis-net:
     volumes:
@@ -337,7 +337,7 @@ services:
     restart: always
 
   codimd-db:
-    image: postgres:11.15-alpine@sha256:386802b61d7226cdcf8710ed6e5e46f993e0da1f3dd2e829cbab12ee91b888ad
+    image: postgres:11.15-alpine@sha256:4e3313956a3d88fc13a7d3786c25d67dd034bd921459958819832f0769a33e3a
     networks:
       ocis-net:
     environment:
