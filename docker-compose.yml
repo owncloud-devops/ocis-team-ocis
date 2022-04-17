@@ -149,7 +149,7 @@ services:
     restart: always
 
   wopiserver:
-    image: cs3org/wopiserver:v8.0.1@sha256:c526e681860c10b03c6f1eeedc4d631126620ea76d302a17f5aade0d817dfe92
+    image: cs3org/wopiserver:v8.0.1@sha256:3c63b58cc47554f36d2e8b99119dc010d9d5ed97fb658828810a7254f3df24ba
     networks:
       ocis-net:
     entrypoint:
