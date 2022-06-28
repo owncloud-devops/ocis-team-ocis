@@ -37,7 +37,7 @@ services:
       - "certs:/certs"
     labels:
       - "traefik.enable=${TRAEFIK_DASHBOARD:-false}"
-      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH_USERS:-admin:$apr1$4vqie50r$YQAmQdtmz5n9rEALhxJ4l.}" # defaults to admin:admin
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=${TRAEFIK_BASIC_AUTH_USERS:-admin:$$apr1$$4vqie50r$$YQAmQdtmz5n9rEALhxJ4l.}" # defaults to admin:admin
       - "traefik.http.routers.traefik.entrypoints=https"
       - "traefik.http.routers.traefik.rule=Host(`${TRAEFIK_DOMAIN:-traefik.owncloud.test}`)"
       - "traefik.http.routers.traefik.middlewares=traefik-auth"
@@ -48,40 +48,32 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:1.16.0@sha256:2ce574ff7f51c27953cf699ce27eb520e493bf32582c0a8844642c6409ab4343
+    image: owncloud/ocis:2.0.0-beta.3@sha256:43b29d7031e7a4882ca116d324155cc85504c06081f4d419f562e7b349f44f58
     networks:
       ocis-net:
     entrypoint:
       - /bin/sh
-      - /entrypoint-override.sh
+    # run ocis init to initialize a configuration file with random secrets
+    # it will fail on subsequent runs, because the config file already exists
+    # therefore we ignore the error and then start the ocis server
+    command: ["-c", "ocis init || true; ocis server"]
     environment:
       # Keycloak IDP specific configuration
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
-      PROXY_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
-      WEB_OIDC_AUTHORITY: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
+      OCIS_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
       WEB_OIDC_CLIENT_ID: ${OCIS_OIDC_CLIENT_ID:-web}
-      WEB_OIDC_METADATA_URL: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}/.well-known/openid-configuration
-      STORAGE_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}
-      STORAGE_LDAP_IDP: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
       # general config
       OCIS_URL: https://${OCIS_DOMAIN:-ocis.owncloud.test}
-      OCIS_DOMAIN: ${OCIS_DOMAIN:-ocis.owncloud.test}
       OCIS_LOG_LEVEL: ${OCIS_LOG_LEVEL:-error} # make oCIS less verbose
-      PROXY_OIDC_INSECURE: "${INSECURE:-false}" # needed if Traefik is using self generated certificates
+      OCIS_LOG_COLOR: "${OCIS_LOG_COLOR:-false}"
       PROXY_TLS: "false" # do not use SSL between Traefik and oCIS
-      ACCOUNTS_DEMO_USERS_AND_GROUPS: "false" # don't generate demo users
-      # change default secrets
-      IDP_LDAP_BIND_PASSWORD: ${IDP_LDAP_BIND_PASSWORD:-idp}
-      STORAGE_LDAP_BIND_PASSWORD: ${STORAGE_LDAP_BIND_PASSWORD:-reva}
-      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
-      STORAGE_TRANSFER_SECRET: ${STORAGE_TRANSFER_SECRET:-replace-me-with-a-transfer-secret}
-      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-replace-me-with-an-api-key}
-      # app registry
-      STORAGE_GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
-      STORAGE_APP_REGISTRY_MIMETYPES_JSON: /var/lib/ocis/app-config/mimetypes.json
+      # INSECURE: needed if oCIS / Traefik is using self generated certificates
+      OCIS_INSECURE: "${INSECURE:-false}"
+
+      GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
     volumes:
-      - ./config/ocis/entrypoint-override.sh:/entrypoint-override.sh
-      - ./config/ocis/mimetypes.json:/var/lib/ocis/app-config/mimetypes.json
+      - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
+      - ocis-config:/etc/ocis
       - /mnt/ocis-team-ocis-data/ocis:/var/lib/ocis
     labels:
       - "traefik.enable=true"
@@ -149,20 +141,22 @@ services:
     restart: always
 
   wopiserver:
-    image: cs3org/wopiserver:v8.0.1@sha256:c526e681860c10b03c6f1eeedc4d631126620ea76d302a17f5aade0d817dfe92
+    image: cs3org/wopiserver:v8.3.0@sha256:9b3ba9d73204f9d580d29ee679e8f0722a6baff8eab6e62a575ebd62467af9dc
     networks:
       ocis-net:
     entrypoint:
-      - /bin/sh
+      - /bin/bash
       - /entrypoint-override.sh
     environment:
+      WOPISERVER_INSECURE: "${INSECURE:-false}"
       WOPISECRET: ${WOPI_JWT_SECRET:-LoremIpsum567}
       IOPSECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
-      CODIMDSECRET: ${CODIMD_SECRET:-LoremIpsum456}
       WOPISERVER_DOMAIN: ${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/wopiserver/entrypoint-override.sh:/entrypoint-override.sh
       - ./config/wopiserver/wopiserver.conf.dist:/etc/wopi/wopiserver.conf.dist
+      - wopi-data:/var/wopi_local_storage
+      - wopi-logs:/var/log/wopi
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.wopiserver.entrypoints=https"
@@ -175,91 +169,50 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:1.16.0@sha256:2ce574ff7f51c27953cf699ce27eb520e493bf32582c0a8844642c6409ab4343
+    image: owncloud/ocis:2.0.0-beta.3@sha256:43b29d7031e7a4882ca116d324155cc85504c06081f4d419f562e7b349f44f58
     networks:
       ocis-net:
-    entrypoint:
-      - /bin/sh
-      - /entrypoint-override.sh
-    #command: storage-app-provider server
+    command: app-provider server
     environment:
       REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
       APP_PROVIDER_GRPC_ADDR: 0.0.0.0:9164
       APP_PROVIDER_EXTERNAL_ADDR: ocis-appdriver-collabora:9164
-      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
-      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
       APP_PROVIDER_DRIVER: wopi
-      APP_PROVIDER_WOPI_DRIVER_APP_NAME: Collabora
-      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://${COLLABORA_DOMAIN:-collabora.owncloud.test}/favicon.ico
-      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${COLLABORA_DOMAIN:-collabora.owncloud.test}
-      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
-      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
-      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+      APP_PROVIDER_WOPI_APP_NAME: Collabora
+      APP_PROVIDER_WOPI_APP_ICON_URI: https://${COLLABORA_DOMAIN:-collabora.owncloud.test}/favicon.ico
+      APP_PROVIDER_WOPI_APP_URL: https://${COLLABORA_DOMAIN:-collabora.owncloud.test}
+      APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
-      - ./config/ocis-appdriver-collabora/entrypoint-override.sh:/entrypoint-override.sh
-    depends_on:
-      - ocis
+      - ocis-config:/etc/ocis
     logging:
       driver: "local"
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:1.16.0@sha256:2ce574ff7f51c27953cf699ce27eb520e493bf32582c0a8844642c6409ab4343
+    image: owncloud/ocis:2.0.0-beta.3@sha256:43b29d7031e7a4882ca116d324155cc85504c06081f4d419f562e7b349f44f58
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
     entrypoint:
       - /bin/sh
       - /entrypoint-override.sh
-    #command: storage-app-provider server
+    #command: app-provider server
     environment:
       REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
       APP_PROVIDER_GRPC_ADDR: 0.0.0.0:9164
       APP_PROVIDER_EXTERNAL_ADDR: ocis-appdriver-onlyoffice:9164
-      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
-      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
       APP_PROVIDER_DRIVER: wopi
-      APP_PROVIDER_WOPI_DRIVER_APP_NAME: OnlyOffice
-      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}/web-apps/apps/documenteditor/main/resources/img/favicon.ico
-      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
-      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
-      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
-      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+      APP_PROVIDER_WOPI_APP_NAME: OnlyOffice
+      APP_PROVIDER_WOPI_APP_ICON_URI: https://${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}/web-apps/apps/documenteditor/main/resources/img/favicon.ico
+      APP_PROVIDER_WOPI_APP_URL: https://${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
+      APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
-    depends_on:
-      - ocis
-    logging:
-      driver: "local"
-    restart: always
-
-  ocis-appdriver-codimd:
-    image: owncloud/ocis:1.16.0@sha256:2ce574ff7f51c27953cf699ce27eb520e493bf32582c0a8844642c6409ab4343
-    networks:
-      ocis-net:
-    user: "0" # needed for apk add in entrypoint script
-    entrypoint:
-      - /bin/sh
-      - /entrypoint-override.sh
-    #command: storage-app-provider server
-    environment:
-      REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
-      APP_PROVIDER_GRPC_ADDR: 0.0.0.0:9164
-      APP_PROVIDER_EXTERNAL_ADDR: ocis-appdriver-codimd:9164
-      OCIS_JWT_SECRET: ${OCIS_JWT_SECRET:-Pive-Fumkiu4}
-      OCIS_MACHINE_AUTH_API_KEY: ${OCIS_MACHINE_AUTH_API_KEY:-change-me-please}
-      APP_PROVIDER_DRIVER: wopi
-      APP_PROVIDER_WOPI_DRIVER_APP_NAME: CodiMD
-      APP_PROVIDER_WOPI_DRIVER_APP_API_KEY: ${CODIMD_SECRET:-LoremIpsum456}
-      APP_PROVIDER_WOPI_DRIVER_APP_ICON_URI: https://${CODIMD_DOMAIN:-codimd.owncloud.test}/favicon.png
-      APP_PROVIDER_WOPI_DRIVER_APP_URL: https://${CODIMD_DOMAIN:-codimd.owncloud.test}
-      APP_PROVIDER_WOPI_DRIVER_INSECURE: "${INSECURE:-false}"
-      APP_PROVIDER_WOPI_DRIVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
-      APP_PROVIDER_WOPI_DRIVER_WOPI_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
-    volumes:
-      - ./config/ocis-appdriver-codimd/entrypoint-override.sh:/entrypoint-override.sh
-    depends_on:
-      - ocis
+      - ocis-config:/etc/ocis
     logging:
       driver: "local"
     restart: always
@@ -269,7 +222,7 @@ services:
     networks:
       ocis-net:
     environment:
-      domain: ${OCIS_DOMAIN:-ocis.owncloud.test}
+      aliasgroup1: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}:443
       DONT_GEN_SSL_CERT: "YES"
       extra_params: --o:ssl.enable=false --o:ssl.termination=true --o:welcome.enable=false --o:net.frame_ancestors=${OCIS_DOMAIN:-ocis.owncloud.test}
       username: ${COLLABORA_ADMIN_USER}
@@ -288,11 +241,12 @@ services:
     restart: always
 
   onlyoffice:
-    image: onlyoffice/documentserver:7.0.1@sha256:ea97f3ed8f7e9f7024a6bdc61676211201a944bdbb4f7174901f910c8b057419
+    image: onlyoffice/documentserver:7.1.1@sha256:8a1edcc13f9d9dd61f3e77bcb172b0f32d0788aa2c63bb5a1206a7633e3dd2f8
     networks:
       ocis-net:
     environment:
-      USE_UNAUTHORIZED_STORAGE: "${INSECURE:-false}" # selfsigned certificates
+      WOPI_ENABLED: "true"
+      USE_UNAUTHORIZED_STORAGE: "${INSECURE:-false}" # self signed certificates
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.onlyoffice.entrypoints=https"
@@ -307,49 +261,11 @@ services:
       driver: "local"
     restart: always
 
-  codimd:
-    image: gitlab-registry.cern.ch/authoring/notes/codimd:cernbox-integration@sha256:5f456692cd04bac2a3706b90330cd3434233fccec044a8a747d34a2e58b6b7de
-    networks:
-      ocis-net:
-    environment:
-      CMD_DB_URL: postgres://codimd:codimd@codimd-db/codimd
-      CMD_AUTO_VERSION_CHECK: "false"
-      CMD_ALLOW_ANONYMOUS: "true"
-      CMD_ALLOW_ANONYMOUS_EDITS: "true"
-      CMD_ALLOW_ANONYMOUS_VIEWS: "true"
-      CMD_ALLOW_FREEURL: "true"
-      CMD_EMAIL: "false"
-      CMD_ALLOW_EMAIL_REGISTER: "false"
-      CMD_USESSL: "false"
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
-      CMD_APPLIANCE_MODE: "true"
-      CMD_SAVE_WEBHOOK: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}/wopi/bridge
-      CMD_API_KEY: ${CODIMD_SECRET:-LoremIpsum456}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.codimd.entrypoints=https"
-      - "traefik.http.routers.codimd.rule=Host(`${CODIMD_DOMAIN:-codimd.owncloud.test}`)"
-      - "traefik.http.routers.codimd.tls.certresolver=http"
-      - "traefik.http.routers.codimd.service=codimd"
-      - "traefik.http.services.codimd.loadbalancer.server.port=3000"
-    logging:
-      driver: "local"
-    restart: always
-
-  codimd-db:
-    image: postgres:11.15-alpine@sha256:4e3313956a3d88fc13a7d3786c25d67dd034bd921459958819832f0769a33e3a
-    networks:
-      ocis-net:
-    environment:
-      POSTGRES_USER: codimd
-      POSTGRES_PASSWORD: codimd
-      POSTGRES_DB: codimd
-    logging:
-      driver: "local"
-    restart: always
-
 volumes:
   certs:
+  ocis-config:
+  wopi-data:
+  wopi-logs:
 
 networks:
   ocis-net:
