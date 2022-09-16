@@ -3,6 +3,8 @@ set -e
 
 echo "${WOPISECRET}" > /etc/wopi/wopisecret
 echo "${IOPSECRET}" > /etc/wopi/iopsecret
+echo "${WOPIPROXYSECRET}" > /etc/wopi/proxysecret
+
 
 cp /etc/wopi/wopiserver.conf.dist /etc/wopi/wopiserver.conf
 sed -i 's/wopiserver.owncloud.test/'${WOPISERVER_DOMAIN}'/g' /etc/wopi/wopiserver.conf

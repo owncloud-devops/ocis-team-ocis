@@ -48,7 +48,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:2.0.0-beta.7@sha256:b12bf81a6737d0712094dc3e3258610fda3fa6c866e5d5bdca141a9d0e0fc955
+    image: owncloud/ocis:2.0.0-beta.8
     networks:
       ocis-net:
     entrypoint:
@@ -67,6 +67,8 @@ services:
       OCIS_LOG_LEVEL: ${OCIS_LOG_LEVEL:-error} # make oCIS less verbose
       OCIS_LOG_COLOR: "${OCIS_LOG_COLOR:-false}"
       PROXY_TLS: "false" # do not use SSL between Traefik and oCIS
+      SHARING_USER_DRIVER: "cs3"
+      SHARING_PUBLIC_DRIVER: "cs3"
       # INSECURE: needed if oCIS / Traefik is using self generated certificates
       OCIS_INSECURE: "${INSECURE:-false}"
 
@@ -141,7 +143,7 @@ services:
     restart: always
 
   wopiserver:
-    image: cs3org/wopiserver:latest@sha256:b68b0b88c30e476a6cd7f38a776b0c09727fa0217d890f2660936fdf30a7d7ae
+    image: micbar/wopiserver:dev #@sha256:db864249068ccd7d33685b15e607c082333b7112ce1432527f2953fdcdf5c6d8
     networks:
       ocis-net:
     entrypoint:
@@ -151,6 +153,7 @@ services:
       WOPISERVER_INSECURE: "${INSECURE:-false}"
       WOPISECRET: ${WOPI_JWT_SECRET:-LoremIpsum567}
       IOPSECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      WOPIPROXYSECRET: ${WOPI_PROXY_SECRET:-LoremIpsum123}
       WOPISERVER_DOMAIN: ${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/wopiserver/entrypoint-override.sh:/entrypoint-override.sh
@@ -169,7 +172,7 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:2.0.0-beta.7@sha256:b12bf81a6737d0712094dc3e3258610fda3fa6c866e5d5bdca141a9d0e0fc955
+    image: owncloud/ocis:2.0.0-beta.8
     networks:
       ocis-net:
     command: app-provider server
@@ -191,7 +194,7 @@ services:
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:2.0.0-beta.7@sha256:b12bf81a6737d0712094dc3e3258610fda3fa6c866e5d5bdca141a9d0e0fc955
+    image: owncloud/ocis:2.0.0-beta.8
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -212,6 +215,28 @@ services:
       APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
+      - ocis-config:/etc/ocis
+    logging:
+      driver: "local"
+    restart: always
+  
+  ocis-appdriver-office365:
+    image: owncloud/ocis:2.0.0-beta.8
+    networks:
+      ocis-net:
+    command: app-provider server
+    environment:
+      REVA_GATEWAY: ${REVA_GATEWAY:-ocis:9142}
+      APP_PROVIDER_GRPC_ADDR: 0.0.0.0:9164
+      APP_PROVIDER_EXTERNAL_ADDR: ocis-appdriver-office365:9164
+      APP_PROVIDER_DRIVER: wopi
+      APP_PROVIDER_WOPI_APP_NAME: Office365
+      APP_PROVIDER_WOPI_APP_ICON_URI: https://res.cdn.office.net/officehub/images/content/images/favicon-8f211ea639.ico
+      APP_PROVIDER_WOPI_APP_URL: https://${OFFICE365_DOMAIN:-office365.owncloud.test}
+      APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
+      APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
+      APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+    volumes:
       - ocis-config:/etc/ocis
     logging:
       driver: "local"
