@@ -71,6 +71,7 @@ services:
       SHARING_PUBLIC_DRIVER: "cs3"
       # INSECURE: needed if oCIS / Traefik is using self generated certificates
       OCIS_INSECURE: "${INSECURE:-false}"
+      FRONTEND_OCS_ENABLE_DENIALS: "true"
 
       GATEWAY_GRPC_ADDR: 0.0.0.0:9142 # make the REVA gateway accessible to the app drivers
     volumes:
