@@ -188,6 +188,7 @@ services:
       APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
       APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
       APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+      APP_PROVIDER_WOPI_FOLDER_URL_BASE_URL: https://${OCIS_DOMAIN:-ocis.owncloud.test}
     volumes:
       - ocis-config:/etc/ocis
     logging:
@@ -214,13 +215,14 @@ services:
       APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
       APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
       APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+      APP_PROVIDER_WOPI_FOLDER_URL_BASE_URL: https://${OCIS_DOMAIN:-ocis.owncloud.test}
     volumes:
       - ./config/ocis-appdriver-onlyoffice/entrypoint-override.sh:/entrypoint-override.sh
       - ocis-config:/etc/ocis
     logging:
       driver: "local"
     restart: always
-  
+
   ocis-appdriver-office365:
     image: owncloud/ocis:2.0.0-rc.1@sha256:72772c53c60215a362d6b8dbf759210e12005395f2c017986314cf9f9e704edd
     networks:
@@ -237,6 +239,7 @@ services:
       APP_PROVIDER_WOPI_INSECURE: "${INSECURE:-false}"
       APP_PROVIDER_WOPI_WOPI_SERVER_IOP_SECRET: ${WOPI_IOP_SECRET:-LoremIpsum123}
       APP_PROVIDER_WOPI_WOPI_SERVER_EXTERNAL_URL: https://${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
+      APP_PROVIDER_WOPI_FOLDER_URL_BASE_URL: https://${OCIS_DOMAIN:-ocis.owncloud.test}
     volumes:
       - ocis-config:/etc/ocis
     logging:
