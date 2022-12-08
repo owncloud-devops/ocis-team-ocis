@@ -30,8 +30,14 @@ services:
       - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedByDefault=false"
     ports:
-      - "80:80"
-      - "443:443"
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host # for getting client IPs
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host # for getting client IPs
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "certs:/certs"
@@ -61,6 +67,7 @@ services:
       # Keycloak IDP specific configuration
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
       OCIS_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
+      PROXY_OIDC_REWRITE_WELLKNOWN: "true"
       WEB_OIDC_CLIENT_ID: ${OCIS_OIDC_CLIENT_ID:-web}
       # general config
       OCIS_URL: https://${OCIS_DOMAIN:-ocis.owncloud.test}
@@ -128,15 +135,6 @@ services:
       - "traefik.http.routers.keycloak.tls.certresolver=http"
       - "traefik.http.routers.keycloak.service=keycloak"
       - "traefik.http.services.keycloak.loadbalancer.server.port=8080"
-      # let /.well-known/openid-configuration be served by Keycloak
-      - "traefik.http.middlewares.idp-headers.headers.customrequestheaders.X-Forwarded-Host=${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}"
-      - "traefik.http.middlewares.idp-prefix.addprefix.prefix=/auth/realms/${KEYCLOAK_REALM:-oCIS}"
-      - "traefik.http.middlewares.idp-override.chain.middlewares=idp-headers,idp-prefix"
-      - "traefik.http.routers.idp-wellknown.entrypoints=https"
-      - "traefik.http.routers.idp-wellknown.tls.certresolver=http"
-      - "traefik.http.routers.idp-wellknown.rule=Host(`${OCIS_DOMAIN:-ocis.owncloud.test}`) && Path(`/.well-known/openid-configuration`)"
-      - "traefik.http.routers.idp-wellknown.middlewares=idp-override"
-      - "traefik.http.routers.idp-wellknown.service=keycloak"
     depends_on:
       - postgres
     logging:
