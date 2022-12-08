@@ -12,7 +12,6 @@ services:
           - ${WOPISERVER_DOMAIN:-wopiserver.owncloud.test}
           - ${COLLABORA_DOMAIN:-collabora.owncloud.test}
           - ${ONLYOFFICE_DOMAIN:-onlyoffice.owncloud.test}
-          - ${CODIMD_DOMAIN:-codimd.owncloud.test}
     command:
       - "--log.level=${TRAEFIK_LOG_LEVEL:-ERROR}"
       # letsencrypt configuration
@@ -54,7 +53,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:2.0.0-rc.1@sha256:72772c53c60215a362d6b8dbf759210e12005395f2c017986314cf9f9e704edd
+    image: owncloud/ocis:2.0.0@sha256:65b979cfcfc386b9bba2509e98bb0e9fa7fc7cc38d3c8f6eec1cfc9cb1542747
     networks:
       ocis-net:
     entrypoint:
@@ -74,8 +73,6 @@ services:
       OCIS_LOG_LEVEL: ${OCIS_LOG_LEVEL:-error} # make oCIS less verbose
       OCIS_LOG_COLOR: "${OCIS_LOG_COLOR:-false}"
       PROXY_TLS: "false" # do not use SSL between Traefik and oCIS
-      SHARING_USER_DRIVER: "cs3"
-      SHARING_PUBLIC_DRIVER: "cs3"
       # INSECURE: needed if oCIS / Traefik is using self generated certificates
       OCIS_INSECURE: "${INSECURE:-false}"
       FRONTEND_OCS_ENABLE_DENIALS: "true"
@@ -171,7 +168,7 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:2.0.0-rc.1@sha256:72772c53c60215a362d6b8dbf759210e12005395f2c017986314cf9f9e704edd
+    image: owncloud/ocis:2.0.0@sha256:65b979cfcfc386b9bba2509e98bb0e9fa7fc7cc38d3c8f6eec1cfc9cb1542747
     networks:
       ocis-net:
     command: app-provider server
@@ -194,7 +191,7 @@ services:
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:2.0.0-rc.1@sha256:72772c53c60215a362d6b8dbf759210e12005395f2c017986314cf9f9e704edd
+    image: owncloud/ocis:2.0.0@sha256:65b979cfcfc386b9bba2509e98bb0e9fa7fc7cc38d3c8f6eec1cfc9cb1542747
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -222,7 +219,7 @@ services:
     restart: always
 
   ocis-appdriver-office365:
-    image: owncloud/ocis:2.0.0-rc.1@sha256:72772c53c60215a362d6b8dbf759210e12005395f2c017986314cf9f9e704edd
+    image: owncloud/ocis:2.0.0@sha256:65b979cfcfc386b9bba2509e98bb0e9fa7fc7cc38d3c8f6eec1cfc9cb1542747
     networks:
       ocis-net:
     command: app-provider server
