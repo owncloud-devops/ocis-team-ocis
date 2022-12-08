@@ -34,14 +34,8 @@ services:
       - "--accessLog.format=json"
       - "--accessLog.fields.headers.names.X-Request-Id=keep"
     ports:
-      - target: 80
-        published: 80
-        protocol: tcp
-        mode: host # for getting client IPs
-      - target: 443
-        published: 443
-        protocol: tcp
-        mode: host # for getting client IPs
+      - 80:80
+      - 443:443
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "certs:/certs"
