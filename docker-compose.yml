@@ -72,8 +72,8 @@ services:
       OCIS_LOG_LEVEL: ${OCIS_LOG_LEVEL:-info}
       OCIS_LOG_COLOR: "${OCIS_LOG_COLOR:-false}"
       PROXY_TLS: "false" # do not use SSL between Traefik and oCIS
-      SHARING_USER_DRIVER: "cs3"
-      SHARING_PUBLIC_DRIVER: "cs3"
+      SHARING_USER_DRIVER: "jsoncs3"
+      SHARING_PUBLIC_DRIVER: "jsoncs3"
       # INSECURE: needed if oCIS / Traefik is using self generated certificates
       OCIS_INSECURE: "${INSECURE:-false}"
       FRONTEND_OCS_ENABLE_DENIALS: "true"
