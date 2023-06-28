@@ -109,7 +109,7 @@ services:
     restart: always
 
   keycloak:
-    image: quay.io/keycloak/keycloak:16.1.1@sha256:24175bfe68a40a56ec20849bd3fdac2f727ea0a851c24b29df663288a209d2f7
+    image: quay.io/keycloak/keycloak:21.1.2@sha256:292d9cf5f767d9d8c7737c119e1541538dcc26fe6c2fb98f073a7aa21a40d42c
     networks:
       ocis-net:
     environment:
