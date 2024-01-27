@@ -52,7 +52,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis:4.0.2@sha256:0b55aa35b0bc2ad070fd6809d943194e2b0ba79dc96c57075a12b32ffa068e94
+    image: owncloud/ocis:4.0.5@sha256:324b10c0842fc74bd54d9166e25f51aa3a829a91295dd7fda532fe17b14a8e74
     networks:
       ocis-net:
     entrypoint:
@@ -172,7 +172,7 @@ services:
     restart: always
 
   ocis-appdriver-collabora:
-    image: owncloud/ocis:4.0.2@sha256:0b55aa35b0bc2ad070fd6809d943194e2b0ba79dc96c57075a12b32ffa068e94
+    image: owncloud/ocis:4.0.5@sha256:324b10c0842fc74bd54d9166e25f51aa3a829a91295dd7fda532fe17b14a8e74
     networks:
       ocis-net:
     command: app-provider server
@@ -201,7 +201,7 @@ services:
     restart: always
 
   ocis-appdriver-onlyoffice:
-    image: owncloud/ocis:4.0.2@sha256:0b55aa35b0bc2ad070fd6809d943194e2b0ba79dc96c57075a12b32ffa068e94
+    image: owncloud/ocis:4.0.5@sha256:324b10c0842fc74bd54d9166e25f51aa3a829a91295dd7fda532fe17b14a8e74
     networks:
       ocis-net:
     user: "0" # needed for apk add in entrypoint script
@@ -235,7 +235,7 @@ services:
     restart: always
 
   ocis-appdriver-office365:
-    image: owncloud/ocis:4.0.2@sha256:0b55aa35b0bc2ad070fd6809d943194e2b0ba79dc96c57075a12b32ffa068e94
+    image: owncloud/ocis:4.0.5@sha256:324b10c0842fc74bd54d9166e25f51aa3a829a91295dd7fda532fe17b14a8e74
     networks:
       ocis-net:
     command: app-provider server
