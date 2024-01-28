@@ -64,7 +64,7 @@ services:
     environment:
       # Keycloak IDP specific configuration
       PROXY_AUTOPROVISION_ACCOUNTS: "true"
-      OCIS_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/auth/realms/${KEYCLOAK_REALM:-oCIS}
+      OCIS_OIDC_ISSUER: https://${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}/realms/${KEYCLOAK_REALM:-oCIS}
       PROXY_OIDC_REWRITE_WELLKNOWN: "true"
       WEB_OIDC_CLIENT_ID: ${OCIS_OIDC_CLIENT_ID:-web}
       # general config
@@ -98,11 +98,11 @@ services:
     restart: always
 
   postgres:
-    image: postgres:13.10@sha256:8f81e14286798303b82d1877bda41c6950d7866c45e721ca027886c2840d075b
+    image: postgres:16
     networks:
       ocis-net:
     volumes:
-      - /mnt/ocis-team-ocis-data/keycloak_postgres:/var/lib/postgresql/data
+      - /mnt/ocis-team-ocis-data/keycloak_postgres_15:/var/lib/postgresql/data
     environment:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
@@ -112,19 +112,19 @@ services:
     restart: always
 
   keycloak:
-    image: quay.io/keycloak/keycloak:16.1.1@sha256:24175bfe68a40a56ec20849bd3fdac2f727ea0a851c24b29df663288a209d2f7
+    image: quay.io/keycloak/keycloak:22.0
     networks:
       ocis-net:
+    command: ["start", "--proxy edge", "--spi-connections-http-client-default-disable-trust-manager=${INSECURE:-false}"]
     environment:
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres
-      DB_DATABASE: keycloak
-      DB_USER: keycloak
-      DB_SCHEMA: public
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
-      KEYCLOAK_USER: ${KEYCLOAK_ADMIN_USER:-admin}
-      KEYCLOAK_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      PROXY_ADDRESS_FORWARDING: "true"
+      KC_HOSTNAME: ${KEYCLOAK_DOMAIN:-keycloak.owncloud.test}
+      KC_DB: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres:5432/keycloak"
+      KC_FEATURES: impersonation
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-keycloak}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
     volumes:
       - ./config/keycloak/themes/ownCloudInfiniteScale:/opt/jboss/keycloak/themes/ownCloudInfiniteScale
       # enable below for hot reload when working on themes
