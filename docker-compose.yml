@@ -98,7 +98,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:16
+    image: postgres:16@sha256:49c276fa02e3d61bd9b8db81dfb4784fe814f50f778dce5980a03817438293e3
     networks:
       ocis-net:
     volumes:
@@ -112,7 +112,7 @@ services:
     restart: always
 
   keycloak:
-    image: quay.io/keycloak/keycloak:22.0
+    image: quay.io/keycloak/keycloak:22.0@sha256:bfa8852e52c279f0857fe8da239c0ad6bbd2cc07793a28a6770f7e24c1e25444
     networks:
       ocis-net:
     command: ["start", "--proxy edge", "--spi-connections-http-client-default-disable-trust-manager=${INSECURE:-false}"]
