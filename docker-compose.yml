@@ -83,6 +83,7 @@ services:
       # service accounts
       OCIS_SERVICE_ACCOUNT_ID: "c8528be2-08e7-4632-990d-5579bbb22c0b"
       OCIS_SERVICE_ACCOUNT_SECRET: "bjVtuA2JCUnzRXDt"
+      WEB_OPTION_OPEN_APPS_IN_TAB: "true"
     volumes:
       - ./config/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
       - ocis-config:/etc/ocis
