@@ -189,7 +189,7 @@ services:
   #   restart: always
 
   collabora:
-    image: collabora/code:24.04.5.1.1@sha256:b96b67c0bdb3e218b878f7ca16135a15dd6707495fbd7c2bc6acb45326a4d0d6
+    image: collabora/code:24.04.10.1.1@sha256:98bfe4bbd18d5faa77f7e3dc0b87309a8d0252c1f4fc81a7f1d9f7a58d4b6ce8
     command: ["bash", "-c", "coolconfig generate-proof-key ; /start-collabora-online.sh"]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9980/hosting/discovery" ]
