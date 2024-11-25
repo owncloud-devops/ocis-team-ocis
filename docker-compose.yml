@@ -53,7 +53,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis-rolling:master
+    image: owncloud/ocis-rolling:master@sha256:4547887b511a1f363b2a3adf3de2e1a3066704208c7de7c664dc9db42a87d7bf
     networks:
       ocis-net:
     entrypoint:
@@ -189,7 +189,7 @@ services:
   #   restart: always
 
   collabora:
-    image: collabora/code:24.04.5.1.1
+    image: collabora/code:24.04.5.1.1@sha256:b96b67c0bdb3e218b878f7ca16135a15dd6707495fbd7c2bc6acb45326a4d0d6
     command: ["bash", "-c", "coolconfig generate-proof-key ; /start-collabora-online.sh"]
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:9980/hosting/discovery" ]
@@ -215,7 +215,7 @@ services:
     restart: always
   
   collaboration:
-    image: owncloud/ocis-rolling:7.0.0-rc.3
+    image: owncloud/ocis-rolling:7.0.0-rc.3@sha256:577145ff96413b608ab0c8256c440f1fc6da65611f3062cf250b2d148b738f4d
     networks:
       ocis-net:
     depends_on:
@@ -255,7 +255,7 @@ services:
     restart: always
 
   collaboration-oo:
-    image: owncloud/ocis-rolling:7.0.0-rc.3
+    image: owncloud/ocis-rolling:7.0.0-rc.3@sha256:577145ff96413b608ab0c8256c440f1fc6da65611f3062cf250b2d148b738f4d
     networks:
       ocis-net:
     depends_on:
@@ -295,7 +295,7 @@ services:
     restart: always
 
   onlyoffice:
-    image: onlyoffice/documentserver:8.2.0
+    image: onlyoffice/documentserver:8.2.0@sha256:2b0180b8ca27b36f27e0ddea0e9e8a5b1d40fcf478dc31f7e2efcfb9ce1bf42a
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
     networks:
