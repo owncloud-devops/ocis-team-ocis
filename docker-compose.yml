@@ -122,7 +122,7 @@ services:
     restart: always
 
   keycloak:
-    image: quay.io/keycloak/keycloak:23.0@sha256:8772ab5e763f3374b7bb70bce4a96ad384b39c548c40007113538e103ee8a8f2
+    image: quay.io/keycloak/keycloak:26.0@sha256:4388e2379b7e870a447adbe7b80bd61f5fbf04e925832b19669fda4957f05a81
     networks:
       ocis-net:
     command:
