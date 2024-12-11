@@ -53,7 +53,7 @@ services:
     restart: always
 
   ocis:
-    image: owncloud/ocis-rolling:master@sha256:4547887b511a1f363b2a3adf3de2e1a3066704208c7de7c664dc9db42a87d7bf
+    image: owncloud/ocis-rolling:master@sha256:439e0b75bc6759707e16d1c39c8ef6db5f3bd6b66e955fc2bcacf5913ffa11b9
     networks:
       ocis-net:
     entrypoint:
